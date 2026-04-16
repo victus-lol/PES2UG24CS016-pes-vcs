@@ -138,35 +138,34 @@ int index_load(Index *index) {
     FILE *fp = fopen(".pes/index", "r");
 
     if (!fp) {
-        index->count = 0;   // no index yet → empty
+        index->count = 0;
         return 0;
     }
 
     index->count = 0;
 
-    while (!feof(fp)) {
-        IndexEntry *e = &index->entries[index->count];
-
+    while (1) {
+        IndexEntry e;
         char hash_hex[65];
 
         int ret = fscanf(fp, "%o %64s %lu %u %[^\n]\n",
-            &e->mode,
+            &e.mode,
             hash_hex,
-            &e->mtime_sec,
-            &e->size,
-            e->path
+            &e.mtime_sec,
+            &e.size,
+            e.path
         );
 
-        if (ret == 5) {
-            hex_to_hash(hash_hex, &e->hash);
-            index->count++;
-        }
+        if (ret != 5) break;
+
+        hex_to_hash(hash_hex, &e.hash);
+
+        index->entries[index->count++] = e;
     }
 
     fclose(fp);
     return 0;
 }
-
 // Save the index to .pes/index atomically.
 //
 // HINTS - Useful functions and syscalls:
@@ -233,6 +232,17 @@ int index_add(Index *index, const char *path) {
 
     free(data);
 
+    
+    for (int i = 0; i < index->count; i++) {
+        if (strcmp(index->entries[i].path, path) == 0) {
+            index->entries[i].hash = oid;
+            index->entries[i].mtime_sec = st.st_mtime;
+            index->entries[i].size = size;
+            return 0;
+        }
+    }
+
+    
     IndexEntry *e = &index->entries[index->count++];
 
     e->mode = 0100644;
