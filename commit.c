@@ -205,7 +205,19 @@ int commit_create(const char *message, ObjectID *commit_id) {
     int len = sprintf(buffer, "tree %s\n\n%s\n", tree_hex, message);
 
     if (object_write(OBJ_COMMIT, buffer, len, commit_id) != 0) return -1;
+const char *author = pes_author();
+time_t now = time(NULL);
 
+len = sprintf(buffer,
+    "tree %s\n"
+    "author %s %ld\n"
+    "committer %s %ld\n\n"
+    "%s\n",
+    tree_hex,
+    author, now,
+    author, now,
+    message
+);
     return 0;
 }
 
