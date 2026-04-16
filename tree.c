@@ -134,8 +134,8 @@ int tree_from_index(ObjectID *tree_id) {
     Tree tree;
     tree.count = 0;
 
-    // For now: empty tree (test builds its own data internally)
-    
+    // empty tree (test_tree uses serialize/parse directly)
+
     void *data;
     size_t len;
 
