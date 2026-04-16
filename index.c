@@ -221,6 +221,8 @@ int index_add(Index *index, const char *path) {
     rewind(fp);
 
     void *data = malloc(size);
+    if (!data) return -1;
+
     fread(data, 1, size, fp);
     fclose(fp);
 
@@ -232,17 +234,19 @@ int index_add(Index *index, const char *path) {
 
     free(data);
 
-    
+    // check if already exists
     for (int i = 0; i < index->count; i++) {
         if (strcmp(index->entries[i].path, path) == 0) {
             index->entries[i].hash = oid;
             index->entries[i].mtime_sec = st.st_mtime;
             index->entries[i].size = size;
+
+            index_save(index);   
             return 0;
         }
     }
 
-    
+    // add new entry
     IndexEntry *e = &index->entries[index->count++];
 
     e->mode = 0100644;
@@ -250,6 +254,9 @@ int index_add(Index *index, const char *path) {
     e->mtime_sec = st.st_mtime;
     e->size = size;
     strcpy(e->path, path);
+
+    
+    if (index_save(index) != 0) return -1;
 
     return 0;
 }
