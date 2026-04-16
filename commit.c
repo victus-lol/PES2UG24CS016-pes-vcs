@@ -196,21 +196,23 @@ int head_update(const ObjectID *new_commit) {
 int commit_create(const char *message, ObjectID *commit_id) {
     ObjectID tree_id;
 
-    // Step 1: Build tree from index
     if (tree_from_index(&tree_id) != 0) return -1;
 
     char tree_hex[65];
     hash_to_hex(&tree_id, tree_hex);
 
-    // Step 2: Read parent (if exists)
-    char parent_hex[65] = {0};
-    int has_parent = (head_read(parent_hex) == 0);
+    // FIXED PART
+    ObjectID parent_id;
+    char parent_hex[65];
+    int has_parent = (head_read(&parent_id) == 0);
 
-    // Step 3: Author + timestamp
+    if (has_parent) {
+        hash_to_hex(&parent_id, parent_hex);
+    }
+
     const char *author = pes_author();
     time_t now = time(NULL);
 
-    // Step 4: Build commit content
     char buffer[2048];
     int offset = 0;
 
@@ -227,10 +229,8 @@ int commit_create(const char *message, ObjectID *commit_id) {
 
     offset += sprintf(buffer + offset, "%s\n", message);
 
-    // Step 5: Write commit object
     if (object_write(OBJ_COMMIT, buffer, offset, commit_id) != 0) return -1;
 
-    // Step 6: Update HEAD
     if (head_update(commit_id) != 0) return -1;
 
     return 0;
