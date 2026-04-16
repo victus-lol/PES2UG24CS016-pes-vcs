@@ -16,7 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <openssl/evp.h>
-
+#include <openssl/sha.h>
 // ─── PROVIDED ────────────────────────────────────────────────────────────────
 
 void hash_to_hex(const ObjectID *id, char *hex_out) {
@@ -113,6 +113,25 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
 
     memcpy(full, header, header_len);
     memcpy(full + header_len, data, len);
+
+
+    unsigned char hash[32];
+    SHA256(full, total_size, hash);
+// convert hash to hex string
+char hex[65];
+
+for (int i = 0; i < 32; i++) {
+    sprintf(hex + (i * 2), "%02x", hash[i]);
+}
+
+hex[64] = '\0';
+// create directory path
+char dir[3];
+dir[0] = hex[0];
+dir[1] = hex[1];
+dir[2] = '\0';
+char path[256];
+snprintf(path, sizeof(path), ".pes/objects/%s/%s", dir, hex + 2);
 
     return -1;
 }
