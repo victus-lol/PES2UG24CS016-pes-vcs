@@ -235,6 +235,8 @@ offset += sprintf(buffer + offset,
     author, now, author, now);
 
 offset += sprintf(buffer + offset, "%s\n", message);
+if (head_update(commit_id) != 0) return -1;
+
     return 0;
 }
 
