@@ -218,6 +218,23 @@ len = sprintf(buffer,
     author, now,
     message
 );
+char parent_hex[65] = {0};
+int has_parent = (head_read(parent_hex) == 0);
+
+int offset = 0;
+
+offset += sprintf(buffer + offset, "tree %s\n", tree_hex);
+
+if (has_parent) {
+    offset += sprintf(buffer + offset, "parent %s\n", parent_hex);
+}
+
+offset += sprintf(buffer + offset,
+    "author %s %ld\n"
+    "committer %s %ld\n\n",
+    author, now, author, now);
+
+offset += sprintf(buffer + offset, "%s\n", message);
     return 0;
 }
 
